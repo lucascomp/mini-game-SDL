@@ -5,19 +5,50 @@
 ----Autores: Lucas Alves de Sousa & Yago Gomes Tomé de Sousa----
 */
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
 #include "game.h"
+
+int timeToFinish = 0;
+
+void finishTimeout(int timeout) {
+	timeToFinish = SDL_GetTicks() + timeout;
+}
 
 int main()
 {
-	loadGame();
+	initEverything();
 
 	Uint32 dt;
+	Uint32 time = SDL_GetTicks();
 
-	updateGame(dt);
+	while (1)
+	{
+		if (timeToFinish && time >= timeToFinish)
+		{
+			resetScreen();
+			timeToFinish = 0;
+		}
 
-	return 0;
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
+		{
+			switch (event.type) 
+			{
+				case SDL_QUIT:
+					onExit();
+					goto end_game_loop;
+				case SDL_KEYUP:
+					onKeyUp(&event);
+					break;
+			}
+		}
+
+		treatKeyboardInput(SDL_GetKeyboardState(NULL));
+
+		dt = SDL_GetTicks() - time;
+		time = SDL_GetTicks();
+
+		update(dt, time);
+		draw();
+	}
+	end_game_loop: return 0;
 }
-
